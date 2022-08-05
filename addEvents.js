@@ -124,7 +124,7 @@ async function main() {
             name: "ItemCanceled",
             type: "event",
         },
-        tableName: "ItemCancelled",
+        tableName: "ItemCanceled",
     }
 
     const listedReponse = await Moralis.Cloud.run("watchContractEvent", itemListedOptions, {
