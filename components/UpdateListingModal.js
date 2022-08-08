@@ -1,4 +1,4 @@
-import { Modal, Input } from "web3uikit"
+import { Modal, Input, useNotification } from "web3uikit"
 import { useState } from "react"
 import { useWeb3Contract } from "react-moralis"
 import nftMarketplaceAbi from "../constants/NftMarketplace.json"
@@ -14,6 +14,20 @@ export default function UpdateListingModal({
     const [priceToUpdateListingWith, setPriceToUpdateListingWith] = useState(0)
     console.log(priceToUpdateListingWith)
 
+    const dispatch = useNotification()
+
+    const handleUpdateListingSuccess = async (tx) => {
+        await tx.wait(1)
+        dispatch({
+            type: "success",
+            message: "listing updated",
+            title: "Listing updated - please refresh (and move blocks)",
+            position: "topR",
+        })
+        onClose && onClose()
+        setPriceToUpdateListingWith("0")
+    }
+
     const { runContractFunction: updateListing } = useWeb3Contract({
         abi: nftMarketplaceAbi,
         contractAddress: marketplaceAddress,
@@ -21,8 +35,7 @@ export default function UpdateListingModal({
         params: {
             nftAddress: nftAddress,
             tokenId: tokenId,
-            // newPrice: ethers.utils.parseEther(priceToUpdateListingWith || "0"),
-            newPrice: priceToUpdateListingWith,
+            newPrice: ethers.utils.parseEther(priceToUpdateListingWith || "0"),
         },
     })
 
@@ -33,7 +46,12 @@ export default function UpdateListingModal({
             onCloseButtonPressed={onClose}
             onOk={() => {
                 updateListing({
-                    onError: (error) => console.log(error),
+                    onError: (error) => {
+                        console.log(error)
+                    },
+                    // onSuccess automatically passes the result of the call
+                    // we catch it in the handleUpdateListingSuccess
+                    onSuccess: handleUpdateListingSuccess,
                 })
             }}
         >
